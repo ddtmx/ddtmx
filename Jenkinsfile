@@ -1,0 +1,31 @@
+pipeline {
+    agent any
+
+    stages {
+        stage('docker-hello-world-pipeline'){
+            steps{
+                sh 'echo hello_world'
+            }
+        }
+
+        stage('building'){
+            steps{
+                sh 'echo building...'
+            }
+        }
+
+        stage('deploying'){
+            steps{
+                sh 'echo deploying'
+            }
+        }
+
+    }
+
+    post {
+        always{
+            sh 'echo this always run'
+        }
+    }
+
+}
