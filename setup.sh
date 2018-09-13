@@ -4,16 +4,24 @@ CURRENT_DIR="$(cd "$(dirname "${0}")" && pwd)"
 FILE_NAME=$(find . -iname "*swarm*yml")
 
 
-#validate if already created boxes
-MACHINES=$(docker-machine ls | awk 'NR > 1')
-if [[ -n $MACHINES && ! $MACHINES =~ Running ]];
+is_docker_swarm_created(){
+    # 0   created, 
+    # 111 not
+    #validate if already created boxes
+    MACHINES=$(docker-machine ls | awk 'NR > 1')
+    if [[ -n $MACHINES && ! $MACHINES =~ Running ]];
 
-    then
-        echo "[+] machines founded"
-        #start machines
-        docker-machine ls | awk 'NR > 1 { print $1 }' | xargs -I{} docker-machine restart {}
-fi
+        then
+            echo "[+] machines founded"
+            #start machines
+            docker-machine ls | awk 'NR > 1 { print $1 }' | xargs -I{} docker-machine restart {}
+            return 0
+    fi
+    return 111
+}
 
+
+docker_swarm(){
 if [[ -z $MACHINES ]];
 
     then
@@ -50,27 +58,32 @@ if [[ -z $MACHINES ]];
         echo "[+] machines already up"
 
 fi
+} # docker_swarm_end
 
 
+webapp_secret(){
 #______________[ secret ]
 
 eval $(docker-machine env master)
 
 echo "foobar" | docker secret create secret_code -
+}
 
 
+webapp_build(){
 #______________[ stack build ]
 
 eval $(docker-machine env -u)
 
 for i in `ls -1 ./services`;
 do
-    docker build -t apsu777/flask_${i}:latest -f ./services/${i}/Dockerfile ./services/${i}
-    docker push apsu777/flask_${i}:latest
+    docker build -t ddtmx/flask_${i}:latest -f ./services/${i}/Dockerfile ./services/${i}
+    docker push ddtmx/flask_${i}:latest
 done
+}
 
 
-
+webapp_deploy(){
 #_____________[ stack deploy ]
 
 eval $(docker-machine env master)
@@ -80,4 +93,11 @@ do
     name=${name%*.yml} #suffix
     docker stack deploy -c $file $name
 done
-  
+
+}
+
+docker_swarm
+webapp_secret
+webapp_build
+webapp_deploy
+

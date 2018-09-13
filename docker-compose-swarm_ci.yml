@@ -31,5 +31,5 @@ networks:
 
 volumes:
   jenkins_vol:
-    driver: local
-
+#     driver: local
+#

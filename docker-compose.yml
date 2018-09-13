@@ -6,7 +6,7 @@ services:
     build:
       context: ./services/web
       dockerfile: Dockerfile
-    image: apsu777/flask_web:latest
+    image: ddtmx/flask_web:latest
     expose:
       - 5000
     environment:
@@ -26,7 +26,7 @@ services:
     build:
       context: ./services/db
       dockerfile: Dockerfile
-    image: apsu777/flask_db:latest
+    image: ddtmx/flask_db:latest
     volumes:
       - data-volume:/var/lib/postgresql/data
     expose:
@@ -41,7 +41,7 @@ services:
     build:
       context: ./services/nginx
       dockerfile: Dockerfile
-    image: apsu777/flask_nginx:latest
+    image: ddtmx/flask_nginx:latest
     restart: always
     ports:
       - 80:80

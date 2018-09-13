@@ -5,3 +5,12 @@
 ## creating machines
 
 TODO ADD COMMANDS
+
+TODO
+
+add api tests
+ flask tests 
+
+jenkinsfile 
+
+
