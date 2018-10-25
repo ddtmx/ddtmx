@@ -1,0 +1,13 @@
+version: '3.6'
+
+services:
+  kanban:
+    image: ddtmx/flask-kanban:latest
+    # entrypoint: ["/sbin/tini" , "--", "/usr/local/bin/init.sh"]
+    deploy:
+      placement:
+        constraints: [node.labels.app == app]
+    ports:
+      - 5000:5000
+
+
