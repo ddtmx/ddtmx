@@ -1,0 +1,116 @@
+version: '3.6'
+
+services:
+
+  web:
+    image: ddtmx/flask_web:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+    expose:
+      - 5000
+    environment:
+      - FLASK_ENV=production
+      - APP_SETTINGS=project.config.ProductionConfig
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+    depends_on:
+      - db
+    networks:
+      - app
+    secrets:
+      - secret_code
+    healthcheck:
+      test: curl --fail -s http://localhost:5000/ping || exit 1
+      interval: 10s
+      timeout: 2s
+      retries: 5
+  
+  db:
+    image: ddtmx/flask_db:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == manager]
+    volumes:
+      - db_vol:/var/lib/postgresql/data
+    expose:
+      - 5432
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    networks:
+      - app
+
+  nginx:
+    image: ddtmx/flask_nginx:latest
+    deploy:
+      replicas: 1
+      restart_policy:
+        condition: on-failure
+      placement:
+        constraints: [node.role == worker]
+    environment:
+      - swarm_stack={{Stack.Name}}_
+    ports:
+      - 8088:80
+    depends_on:
+      - web
+    networks:
+      - app
+
+  visualizer:
+    image: dockersamples/visualizer:latest
+    ports:
+      - 8089:8080
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+    deploy:
+      placement:
+        constraints: [node.role == manager]
+    networks:
+      - app
+
+#  privateregistry:
+#    image: registry:2
+#    volumes:
+#        - registry:/var/lib/registry
+#    ports:
+#        - 5001:5001
+#    networks:
+#        - functions
+#    environment:
+#        REGISTRY_HTTP_ADDR: "0.0.0.0:5001"
+#        REGISTRY_HTTP_TLS_CERTIFICATE: /run/secrets/builder_domain.crt
+#        REGISTRY_HTTP_TLS_KEY: /run/secrets/builder_domain.key
+#    secrets:
+#        - builder_domain.crt
+#        - builder_domain.key
+#    deploy:
+#        placement:
+#            constraints:
+#                - 'node.role == manager'
+#
+
+networks:
+  app:
+    driver: overlay
+
+volumes:
+  db_vol:
+    driver: local
+
+secrets:
+  secret_code:
+    external: true
+
+#  builder_domain.crt:
+#      file: ./certs/domain.crt
+#  builder_domain.key:
+#      file: ./certs/domain.key
+#  

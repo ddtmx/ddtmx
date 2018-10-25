@@ -1,0 +1,88 @@
+#!/bin/env groovy
+
+pipeline {
+  agent any
+
+  triggers {
+    pollSCM('* * * * *')
+  }
+
+ options {
+      // timeout(time: 1, unit: 'HOURS')
+      timeout(time: 15, unit: 'MINUTES')
+      buildDiscarder(logRotator(numToKeepStr: '5'))
+
+  }
+
+  parameters {
+    string(name: 'PYTHON_IMAGE', defaultValue: 'python:3.6-alpine3.8', description: '')
+    string(name: 'REPO', defaultValue: 'ddtmx', description: '')
+    string(name: 'APPNAME', defaultValue: 'flask-kanban', description: '')
+    string(name: 'STACKNAME', defaultValue: 'app', description: '')
+  }
+
+  environment {
+    DOCKER_AUTH = credentials("dockerhub-ddtmx") // this must be created in the webui
+                                                 // in adition  postfix "_USR" = user nad _PSW=password
+  }
+
+
+
+  stages {
+    stage("Build Image") {
+      agent {
+          docker {
+             image "${params.PYTHON_IMAGE}"
+             args '-u root'
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG"
+          }
+      }
+      steps {
+        sh 'apk update  && apk add git'
+        sh 'git clone https://github.com/gwpicard/flask-kanban'
+        sh 'pip install virtualenv && virtualenv -p /usr/local/bin/python3 venv && . venv/bin/activate'
+        sh 'pip install -r flask-kanban/requirements.txt'
+        sh 'python flask-kanban/dummy.py'
+      }
+    } // endstage
+
+    stage("Test Image") {
+      agent {
+          docker {
+             image "${params.PYTHON_IMAGE}"
+             args '-u root'
+             customWorkspace "$JENKINS_HOME/workspace/$BUILD_TAG"
+          }
+      }
+      steps {
+        sh 'chown -R root:root *'
+        sh '. venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
+      }
+    } // endstage
+
+    stage("Push Image") {
+        steps {
+          dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
+            // tagging
+            sh "docker build . -t ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG}"
+            sh "docker build . -t ${params.REPO}/${params.APPNAME}:latest"
+            // pushing
+            sh "docker login -u ${DOCKER_AUTH_USR} -p ${DOCKER_AUTH_PSW} "
+            sh "docker push ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG}"
+            sh "docker push ${params.REPO}/${params.APPNAME}:latest"
+          }
+        }
+    } // endstage
+
+    stage ("Deploy Image"){
+      steps{
+        dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
+          sh "docker service update  --image ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG} ${params.STACKNAME}_${params.APPNAME} "
+          // sh 'docker stack deploy -c docker-compose-swarm.yml app'
+        }
+      }
+    }
+
+
+ } // enstages
+} // endpipeline
