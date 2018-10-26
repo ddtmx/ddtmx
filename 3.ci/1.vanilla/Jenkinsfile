@@ -57,7 +57,7 @@ pipeline {
       steps {
         // move to dir
         sh 'mv  flask-kanban venv 3.ci/1.vanilla/'
-        sh '. venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
+        sh 'cd 3.ci/1.vanilla/ && . venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
       }
     } // endstage
 
