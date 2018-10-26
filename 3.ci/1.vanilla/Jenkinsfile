@@ -55,7 +55,7 @@ pipeline {
           }
       }
       steps {
-        sh 'chown -R root:root *'
+        sh 'chown -R jenkins:jenkins *'
         sh '. venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
       }
     } // endstage
