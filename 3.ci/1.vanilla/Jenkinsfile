@@ -39,14 +39,10 @@ pipeline {
       }
       steps {
         sh 'apk update  && apk add git'
-        parallel (
-          a : { sh 'git clone https://github.com/gwpicard/flask-kanban' },
-          b : { sh 'pip install virtualenv && virtualenv -p /usr/local/bin/python3 venv && . venv/bin/activate' }
-          )
-        parallel (
-          c : { sh 'pip install -r flask-kanban/requirements.txt' },
-          d : { sh 'python flask-kanban/dummy.py' }
-        )
+        sh 'git clone https://github.com/gwpicard/flask-kanban'
+        sh 'pip install virtualenv && virtualenv -p /usr/local/bin/python3 venv && . venv/bin/activate'
+        sh 'pip install -r flask-kanban/requirements.txt'
+        sh 'python flask-kanban/dummy.py'
       }
     } // endstage
 
