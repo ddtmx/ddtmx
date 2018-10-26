@@ -64,7 +64,7 @@ pipeline {
         steps {
           dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
             // move to dir
-            sh 'mv {flask-kanban,venv} 3.ci/1.vanilla/'
+            sh 'mv  flask-kanban venv 3.ci/1.vanilla/'
             // tagging
             sh "docker build -f 3.ci/1.vanilla/Dockerfile -t ${params.DOCKER_REPO}/${params.APPNAME}:${env.BUILD_TAG} 3.ci/1.vanilla/"
             sh "docker build -f 3.ci/1.vanilla/Dockerfile -t ${params.DOCKER_REPO}/${params.APPNAME}:latest           3.ci/1.vanilla/"
