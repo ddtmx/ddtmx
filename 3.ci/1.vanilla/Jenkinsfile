@@ -61,7 +61,6 @@ pipeline {
       }
     } // endstage
 
-
     stage("Push Image") {
         steps {
           dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
