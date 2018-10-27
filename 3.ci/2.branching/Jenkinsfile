@@ -7,7 +7,7 @@ pipeline {
     pollSCM('* * * * *')
   }
 
-  options {
+ options {
       // timeout(time: 1, unit: 'HOURS')
       timeout(time: 15, unit: 'MINUTES')
       buildDiscarder(logRotator(numToKeepStr: '5'))
@@ -16,7 +16,7 @@ pipeline {
 
   parameters {
     string(name: 'PYTHON_IMAGE', defaultValue: 'python:3.6-alpine3.8', description: '')
-    string(name: 'DOCKER_REPO', defaultValue: 'ddtmx', description: '')
+    string(name: 'REPO', defaultValue: 'ddtmx', description: '')
     string(name: 'APPNAME', defaultValue: 'flask-kanban', description: '')
     string(name: 'STACKNAME', defaultValue: 'app', description: '')
   }
@@ -46,7 +46,6 @@ pipeline {
       }
     } // endstage
 
-
     stage("Test Image") {
       agent {
           docker {
@@ -56,33 +55,29 @@ pipeline {
           }
       }
       steps {
-        // move to dir
-        sh 'mv  flask-kanban venv 3.ci/1.vanilla/'
-        sh 'cd 3.ci/1.vanilla/ && . venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
+        sh 'chown -R root:root *'
+        sh '. venv/bin/activate && pip install -r flask-kanban/requirements.txt && cd flask-kanban && python -m unittest discover tests'
       }
     } // endstage
-
 
     stage("Push Image") {
         steps {
           dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
-
             // tagging
-            sh "docker build -f 3.ci/1.vanilla/Dockerfile -t ${params.DOCKER_REPO}/${params.APPNAME}:${env.BUILD_TAG} 3.ci/1.vanilla/"
-            sh "docker build -f 3.ci/1.vanilla/Dockerfile -t ${params.DOCKER_REPO}/${params.APPNAME}:latest           3.ci/1.vanilla/"
+            sh "docker build . -t ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG}"
+            sh "docker build . -t ${params.REPO}/${params.APPNAME}:latest"
             // pushing
             sh "docker login -u ${DOCKER_AUTH_USR} -p ${DOCKER_AUTH_PSW} "
-            sh "docker push ${params.DOCKER_REPO}/${params.APPNAME}:${env.BUILD_TAG}"
-            sh "docker push ${params.DOCKER_REPO}/${params.APPNAME}:latest"
+            sh "docker push ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG}"
+            sh "docker push ${params.REPO}/${params.APPNAME}:latest"
           }
         }
     } // endstage
 
-
     stage ("Deploy Image"){
       steps{
         dir("$JENKINS_HOME/workspace/$BUILD_TAG"){
-          sh "docker service update  --image ${params.DOCKER_REPO}/${params.APPNAME}:${env.BUILD_TAG} ${params.STACKNAME}_${params.APPNAME} "
+          sh "docker service update  --image ${params.REPO}/${params.APPNAME}:${env.BUILD_TAG} ${params.STACKNAME}_${params.APPNAME} " // fails due to swarm master comm
           // sh 'docker stack deploy -c docker-compose-swarm.yml app'
         }
       }
