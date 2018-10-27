@@ -16,6 +16,12 @@ services:
     ports:
       - 8880:8080
       - 50000:50000
+#    environment:
+#      - JENKINS_UC=https://updates.jenkins.io
+#      - JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
+#      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+#      - JENKINS_OPTIONS=--argumentsRealm.passwd.admin=password --argumentsRealm.roles.user=admin --argumentsRealm.roles.admin=admin
+#      - JENKINS_SLAVE_AGENT_PORT=50000
     configs:
       - source: jenkins-init.sh
         target: /usr/local/bin/init.sh
@@ -25,7 +31,7 @@ services:
   artifactory_db:
     image: docker.bintray.io/postgres:9.5.2
     ports:
-     - 5442:5432
+     - 5432:5432
     environment:
      - POSTGRES_DB=artifactory
      # The following must match the DB_USER and DB_PASSWORD values passed to Artifactory
