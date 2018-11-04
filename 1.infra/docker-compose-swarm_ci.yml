@@ -8,9 +8,9 @@ services:
 #      - app
     deploy:
       placement:
-        constraints: [node.labels.ci == jenkins]
+        constraints: [node.labels.jenkins == jenkins]
     volumes:
-      - "jenkins:/var/jenkins_home"              # persistent
+      - "jenkins:/var/jenkins_home"                  # persistent
       - "/var/run/docker.sock:/var/run/docker.sock"  # docker from jenkins
       - "/usr/local/bin/docker:/bin/docker"          # docker from jenkins
     ports:
@@ -131,6 +131,8 @@ configs:
 networks:
   app:
     driver: overlay
+    driver_opts:                        # new added
+        encrypted: "true"               # new added
 
 volumes:
   jenkins:

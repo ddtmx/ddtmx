@@ -4,13 +4,8 @@
 
 ## creating machines
 
-TODO ADD COMMANDS
+to set the whole enviroment need to run:
+    - ./setup.sh
 
-TODO
-
-add api tests
- flask tests 
-
-jenkinsfile 
 
 

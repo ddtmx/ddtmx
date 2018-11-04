@@ -2,13 +2,15 @@
 
 CURRENT_DIR="$(cd "$(dirname "${0}")" && pwd)"
 FILE_NAME=$(find . -iname "*swarm*yml")
+MACHINES=$(docker-machine ls | awk 'NR > 1')
+CIDR="192.168.77.1/16"
 
 
 is_docker_swarm_created(){
-    # 0   created, 
+    # 0   created,
     # 111 not
     #validate if already created boxes
-    MACHINES=$(docker-machine ls | awk 'NR > 1')
+
     if [[ -n $MACHINES && ! $MACHINES =~ Running ]];
 
         then
@@ -22,10 +24,11 @@ is_docker_swarm_created(){
 
 
 docker_swarm(){
+# creates a master and node1 - node2 cluster like
 if [[ -z $MACHINES ]];
 
     then
-        CIDR="192.168.77.1/16"
+
         DEL_VBOX_ADAPTER=$(VBoxManage  list hostonlyifs | grep -i 77 -B4 |grep -i name | awk '{ print $NF }' | xargs -I{} VBoxManage hostonlyif remove {} 2>&-)
 
         #______________[ Create machines  & initialize master and nodes ]
@@ -101,7 +104,7 @@ webapp_secret
 webapp_build
 webapp_deploy
 
-ci_clean(){ 
+ci_clean(){
    for i in master node1 node2;
    do
       eval $(docker-machine env $i)
@@ -114,7 +117,7 @@ ci_clean(){
 #get labels
 docker node ls -q | xargs docker node inspect   -f '{{ .ID }} [{{ .Description.Hostname }}]: {{ .Spec.Labels }}'
 
-docker node update --label-add ci=repotest node2 #dedicated to SONARQUBE and ARTIFACTORY
-docker node update --label-add ci=jenkins node1  #dedicated to Jeknins 
-docker node update --label-add app=app master    #dedicated to apps
+docker node update --label-add ci=repotest node2      #dedicated to SONARQUBE and ARTIFACTORY
+docker node update --label-add jenkins=jenkins master #dedicated to Jeknins
+docker node update --label-add app=db master          #dedicated to apps
 
