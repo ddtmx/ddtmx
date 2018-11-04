@@ -6,7 +6,7 @@ RUN mkdir -p /app
 WORKDIR /app
 
 COPY ./flask-kanban /app
-RUN  pip install --no-cache-dir -r requirements.txt
+RUN  pip install --no-cache-dir -r requirements.txt && sed -i "s|host='localhost'|host='0.0.0.0'|g"
 
 RUN apk add --no-cache tzdata
 
