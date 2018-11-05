@@ -16,12 +16,12 @@ services:
     ports:
       - 8880:8080
       - 50000:50000
-#    environment:
-#      - JENKINS_UC=https://updates.jenkins.io
-#      - JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
-#      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
-#      - JENKINS_OPTIONS=--argumentsRealm.passwd.admin=password --argumentsRealm.roles.user=admin --argumentsRealm.roles.admin=admin
-#      - JENKINS_SLAVE_AGENT_PORT=50000
+    environment:
+      - JENKINS_UC=https://updates.jenkins.io
+      - JENKINS_UC_EXPERIMENTAL=https://updates.jenkins.io/experimental
+      - JAVA_OPTS=-Djenkins.install.runSetupWizard=false
+      - JENKINS_OPTIONS=--argumentsRealm.passwd.admin=password --argumentsRealm.roles.user=admin --argumentsRealm.roles.admin=admin
+      - JENKINS_SLAVE_AGENT_PORT=50000
     configs:
       - source: jenkins-init.sh
         target: /usr/local/bin/init.sh
